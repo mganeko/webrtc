@@ -44,8 +44,6 @@
   ---------
   -->
 
-  <button class="createSessionButton" onclick="window.startServer()"> Start Broadcast Server</button>
-
   <div id="signalingContainer" style="display: none">
     Browser base64 Session Description<br />
     <textarea id="localSessionDescription" readonly="true"></textarea> <br />
@@ -60,10 +58,11 @@
   Video<br />
   <video id="video1" width="160" height="120" autoplay muted></video> <br />
 
-  <button class="createSessionButton" onclick="window.createSession(true)"> Publish a Broadcast </button>
   <!--
-  <button class="createSessionButton" onclick="window.createSession(false)"> Join a Broadcast </button><br />
+  <button class="createSessionButton" onclick="window.createSession(true)"> Publish a Broadcast </button>
   -->
+
+  <button class="createSessionButton" onclick="window.createSession(false)"> Join a Broadcast </button><br />
 
   <br />
 
@@ -160,20 +159,6 @@
     document.getElementById('signalingContainer').style = 'display: block'
   }
 
-  window.startServer = () => {
-    fetch('/broadcast', {
-      method: 'POST',
-      mode: "cors",
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-      },
-      body: "start-server",
-    }).then(function (response) {
-      return response.text();
-    }).then(function (res) {
-      console.log('response:', res);
-    });
-  }
 
   /*
     function startVideoAndPeer() {
@@ -240,6 +225,7 @@
     }).then(function (res) {
       console.log('response:', res);
       document.getElementById('remoteSessionDescription').value = res;
+      //window.startSession();
       if (res != "") {
         console.log('--- got answer, start session ---')
         window.startSession();

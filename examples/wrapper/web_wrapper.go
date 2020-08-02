@@ -85,9 +85,9 @@ func main() {
 		//rBody := "answer-" + body;
 		//rBody := execProc("./bin/broadcast", body)
 
-		//fmt.Fprint(w, rBody)
-		fmt.Println(body);
-		fmt.Fprint(w, "paste asnwer")
+		startProc("./bin/broadcast", body)
+
+		fmt.Fprint(w, "proc started")
 	})
 
 	// 静的ファイル配信.
@@ -154,4 +154,17 @@ func execProc(prog string, arg string) string {
 
 	fmt.Println("--- exeProc. return ----")
 	return result
+}
+
+func startProc(prog string, arg string) *exec.Cmd {
+	fmt.Println("call exeProc. prog=" + prog + ", arg=" + arg)
+	//cmd := exec.Command("wc")
+	cmd := exec.Command(prog)
+
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("exeProc. start()")
+	return cmd
 }

@@ -17,13 +17,16 @@ const (
 )
 
 func main() {
-	sdpChan := signal.HTTPSDPServer()
+	fmt.Fprintln(os.Stderr, "-- start broadcast ---")
+
+	//sdpChan := signal.HTTPSDPServer()
 
 	// Everything below is the Pion WebRTC API, thanks for using it ❤️.
 	offer := webrtc.SessionDescription{}
-	signal.Decode(<-sdpChan, &offer)
-	fmt.Println("")
-	fmt.Fprintln(os.Stderr, "-- got pub offer ---")
+	//signal.Decode(<-sdpChan, &offer) // HTTP 8080
+	signal.Decode(signal.MustReadStdin(), &offer)
+	fmt.Fprintln(os.Stderr, "-- got sender offer ---")
+	//fmt.Println("")
 
 	// Since we are answering use PayloadTypes declared by offerer
 	mediaEngine := webrtc.MediaEngine{}
@@ -64,7 +67,8 @@ func main() {
 			ticker := time.NewTicker(rtcpPLIInterval)
 			for range ticker.C {
 				if rtcpSendErr := peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.PictureLossIndication{MediaSSRC: remoteTrack.SSRC()}}); rtcpSendErr != nil {
-					fmt.Println(rtcpSendErr)
+					//fmt.Println(rtcpSendErr)
+					fmt.Fprintln(os.Stderr, rtcpSendErr)
 				}
 			}
 		}()
@@ -117,22 +121,22 @@ func main() {
 	<-gatherComplete
 
 	// Get the LocalDescription and take it to base64 so we can paste in browser
-	//fmt.Println(signal.Encode(*peerConnection.LocalDescription()))
-	encAnswer := signal.Encode(*peerConnection.LocalDescription())
-	fmt.Println(encAnswer)
-	fmt.Fprintln(os.Stderr, "-- send asnwer ---")
-	sdpChan <- encAnswer
-	fmt.Fprintln(os.Stderr, "-- write asnwer to channel ---")
-	
-	localTrack := <-localTrackChan
+	fmt.Println(signal.Encode(*peerConnection.LocalDescription()))
+	fmt.Fprintln(os.Stderr, "-- send answer ---")
+
+	//localTrack := <-localTrackChan
+
+	/*-----
 	for {
-		fmt.Println("")
+		//fmt.Println("")
 		//fmt.Println("Curl an base64 SDP to start sendonly peer connection")
-		fmt.Println("Curl an base64 SDP to start recvonly client")
+		fmt.Fprintln(os.Stderr, "");
+		fmt.Fprintln(os.Stderr, "Curl an base64 SDP to start sendonly peer connection")
 
 		recvOnlyOffer := webrtc.SessionDescription{}
-		signal.Decode(<-sdpChan, &recvOnlyOffer)
-		fmt.Fprintln(os.Stderr, "-- got sub offer ---")
+		//signal.Decode(<-sdpChan, &recvOnlyOffer) // HTTP 8080
+		signal.Decode(signal.MustReadStdin(), &recvOnlyOffer)
+		fmt.Fprintln(os.Stderr, "-- got receive offer ---")
 
 		// Create a new PeerConnection
 		peerConnection, err := api.NewPeerConnection(peerConnectionConfig)
@@ -172,11 +176,11 @@ func main() {
 		<-gatherComplete
 
 		// Get the LocalDescription and take it to base64 so we can paste in browser
-		//fmt.Println(signal.Encode(*peerConnection.LocalDescription()))
-		encAnswer := signal.Encode(*peerConnection.LocalDescription())
-		fmt.Println(encAnswer)
-		fmt.Fprintln(os.Stderr, "-- send sub asnwer ---")
-		sdpChan <- encAnswer
-		fmt.Fprintln(os.Stderr, "-- write sub asnwer to channel ---")
+		fmt.Println(signal.Encode(*peerConnection.LocalDescription()))
+		fmt.Fprintln(os.Stderr, "-- send asnwer ---")
 	}
+	---*/
+
+	// Block forever
+	select {}
 }
