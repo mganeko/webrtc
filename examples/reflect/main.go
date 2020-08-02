@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+	"os"
 
 	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v3"
@@ -12,10 +13,14 @@ import (
 
 func main() {
 	// Everything below is the Pion WebRTC API! Thanks for using it ❤️.
+	s := webrtc.SettingEngine{}
+	//s.SetCandidateSelectionTimeout(30 * time.Second)
+	// SetICETimeouts(disconnectedTimeout, failedTimeout, keepAliveInterval time.Duration) 
 
 	// Wait for the offer to be pasted
 	offer := webrtc.SessionDescription{}
 	signal.Decode(signal.MustReadStdin(), &offer)
+	fmt.Fprintln(os.Stderr, "-- got offer ---")
 
 	// We make our own mediaEngine so we can place the sender's codecs in it. Since we are echoing their RTP packet
 	// back to them we are actually codec agnostic - we can accept all their codecs. This also ensures that we use the
@@ -35,7 +40,7 @@ func main() {
 		panic("Offer contained no video codecs")
 	}
 
-	api := webrtc.NewAPI(webrtc.WithMediaEngine(mediaEngine))
+	api := webrtc.NewAPI(webrtc.WithMediaEngine(mediaEngine), webrtc.WithSettingEngine(s))
 
 	// Prepare the configuration
 	config := webrtc.Configuration{
@@ -78,12 +83,15 @@ func main() {
 			for range ticker.C {
 				errSend := peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.PictureLossIndication{MediaSSRC: track.SSRC()}})
 				if errSend != nil {
-					fmt.Println(errSend)
+					//fmt.Println(errSend)
+					fmt.Fprintln(os.Stderr, errSend)
 				}
 			}
 		}()
 
-		fmt.Printf("Track has started, of type %d: %s \n", track.PayloadType(), track.Codec().Name)
+		//fmt.Printf("Track has started, of type %d: %s \n", track.PayloadType(), track.Codec().Name)
+		fmt.Fprintf(os.Stderr, "Track has started, of type %d: %s \n", track.PayloadType(), track.Codec().Name)
+
 		for {
 			// Read RTP packets being sent to Pion
 			rtp, readErr := track.ReadRTP()
@@ -103,7 +111,8 @@ func main() {
 	// Set the handler for ICE connection state
 	// This will notify you when the peer has connected/disconnected
 	peerConnection.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-		fmt.Printf("Connection State has changed %s \n", connectionState.String())
+		//fmt.Printf("Connection State has changed %s \n", connectionState.String())
+		fmt.Fprintf(os.Stderr, "Connection State has changed %s \n", connectionState.String())
 	})
 
 	// Create an answer
@@ -128,6 +137,7 @@ func main() {
 
 	// Output the answer in base64 so we can paste it in browser
 	fmt.Println(signal.Encode(*peerConnection.LocalDescription()))
+	fmt.Fprintln(os.Stderr, "-- send asnwer ---")
 
 	// Block forever
 	select {}

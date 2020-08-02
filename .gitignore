@@ -22,3 +22,11 @@ cover.out
 *.wasm
 examples/sfu-ws/cert.pem
 examples/sfu-ws/key.pem
+
+#--- wrapper ---
+examples/wrapper/bin/*
+examples/wrapper/trial
+
+# --- bin ----
+examples/reflect/reflect
+examples/broadcast/broadcast
